@@ -61,6 +61,13 @@
 
 #include "SQM_TSL2591.h"
 
+double mpsas2nelm(double mpsas) {
+  double nelm;
+  if (mpsas>18.3) { nelm=7.93-5*log10(pow(10,4.316-(mpsas/5.))+1); }
+  else { nelm=4.305-5*log10(pow(10,2.316-(mpsas/5.))+1); }
+  return nelm;
+}
+
 SQM_TSL2591::SQM_TSL2591(int32_t sensorID) {
   _initialized = false;
   _integration = TSL2591_INTEGRATIONTIME_400MS;
@@ -146,7 +153,7 @@ void SQM_TSL2591::setGain(tsl2591Gain_t gain) {
     break;
   default:
     if (verbose) {
-      Serial.println("Gain not found!");
+      Serial.println(F("Gain not found!"));
     }
     break;
   }
@@ -192,7 +199,7 @@ void SQM_TSL2591::setTiming(tsl2591IntegrationTime_t integration) {
   default: // 100ms
     integrationValue = 999.F;
     if (verbose) {
-      Serial.println("Integration not found!");
+      Serial.println(F("Integration not found!"));
       Serial.println(_integration);
     }
     break;
@@ -207,12 +214,12 @@ void SQM_TSL2591::configSensor() {
 }
 
 void SQM_TSL2591::showConfig() {
-  Serial.print("Integration: ");
+  Serial.print(F("Integration: "));
   Serial.print(integrationValue);
-  Serial.println(" ms");
-  Serial.print("Gain:        ");
+  Serial.println(F(" ms"));
+  Serial.print(F("Gain:        "));
   Serial.print(gainValue);
-  Serial.println("x");
+  Serial.println(F("x"));
 }
 
 uint32_t SQM_TSL2591::getFullLuminosity(void) {
@@ -315,7 +322,7 @@ void SQM_TSL2591::takeReading(void) {
   vis = full - ir;
   if ((float)full < (float)ir) {
     if (verbose) {
-      Serial.println("Odd, full less than ir!  Rechecking...");
+      Serial.println(F("Odd, full less than ir!  Rechecking..."));
     }
     takeReading();
   }
@@ -324,7 +331,7 @@ void SQM_TSL2591::takeReading(void) {
     if (_gain == TSL2591_GAIN_MAX) {
       if (_integration != TSL2591_INTEGRATIONTIME_600MS) {
         if (verbose) {
-          Serial.println("Bumping integration up");
+          Serial.println(F("Bumping integration up"));
         }
         bumpTime(1);
         if (verbose)
@@ -341,7 +348,7 @@ void SQM_TSL2591::takeReading(void) {
         irCumulative = ir;
         visCumulative = vis;
         // Do iterative sampling to gain statistical certainty
-        while ((float)visCumulative < 128.) {
+        while ((float)visCumulative < 200.) {
           niter++;
           delay(50);
           lum = getFullLuminosity();
@@ -350,7 +357,7 @@ void SQM_TSL2591::takeReading(void) {
           fullCumulative += full;
           irCumulative += ir;
           visCumulative = fullCumulative - irCumulative;
-          if (niter > 32) {
+          if (niter > 20) {
             break;
           }
         }
@@ -360,14 +367,14 @@ void SQM_TSL2591::takeReading(void) {
           vis = visCumulative;
         } else {
           if (verbose) {
-            Serial.println("Odd, full less than ir!  Rechecking...");
+            Serial.println(F("Odd, full less than ir!  Rechecking..."));
           }
           takeReading();
         }
       }
     } else {
       if (verbose) {
-        Serial.println("Bumping gain up");
+        Serial.println(F("Bumping gain up"));
       }
       bumpGain(1);
       if (verbose)
@@ -383,7 +390,7 @@ void SQM_TSL2591::takeReading(void) {
     if ((_gain == TSL2591_GAIN_MAX) &
         (_integration != TSL2591_INTEGRATIONTIME_200MS)) {
       if (verbose) {
-        Serial.println("Bumping integration down");
+        Serial.println(F("Bumping integration down"));
       }
       bumpTime(-1);
       if (verbose)
@@ -394,7 +401,7 @@ void SQM_TSL2591::takeReading(void) {
       takeReading();
     } else {
       if (verbose) {
-        Serial.println("Bumping gain down");
+        Serial.println(F("Bumping gain down"));
       }
       bumpGain(-1);
       if (verbose)
@@ -410,6 +417,9 @@ void SQM_TSL2591::takeReading(void) {
   float VIS = (float)vis / (gainValue * integrationValue / 200.F * niter);
   mpsas = 12.6 - 1.086 * log(VIS) + _calibrationOffset;
   dmpsas = 1.086 / sqrt((float)vis);
+  //if (mpsas>18.3) { nelm=7.93-5*log10(pow(10,4.316-(mpsas/5.))+1); }
+  //else { nelm=4.305-5*log10(pow(10,2.316-(mpsas/5.))+1); }
+  nelm=mpsas2nelm(mpsas);
 }
 
 uint8_t SQM_TSL2591::read8(uint8_t reg) {

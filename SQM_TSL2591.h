@@ -128,6 +128,7 @@ typedef struct  {
   tsl2591IntegrationTime_t time;
 } sensorConfig;
 
+double mpsas2nelm(double mpsas);
 
 class SQM_TSL2591 : public Adafruit_Sensor
 {
@@ -157,7 +158,7 @@ class SQM_TSL2591 : public Adafruit_Sensor
   void configSensor(void);
   sensorConfig config;
   float integrationValue, gainValue;
-  double mpsas, dmpsas;
+  double mpsas, dmpsas, nelm;
   bool verbose;
 
   void bumpGain(int bumpDirection);
