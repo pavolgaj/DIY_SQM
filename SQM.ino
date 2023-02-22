@@ -51,7 +51,7 @@ void setup_tsl() {
     sqm.config.gain = TSL2591_GAIN_HIGH;
     sqm.config.time = TSL2591_INTEGRATIONTIME_400MS;
     sqm.configSensor();
-    sqm.setCalibrationOffset(0.3);
+    sqm.setCalibrationOffset(0.3);   // 0.3 alebo mozno 0.5
     sqm.verbose = false;
   } else {
     Serial.println(F("SQM sensor not found"));
@@ -101,8 +101,9 @@ void setup() {
   // Clear the buffer
   display.clearDisplay(); 
 
-  pinMode(2,INPUT);  //spodne tlacitko 1 meranie
-  pinMode(4,INPUT);  //spodne tlacitko 5 merani
+  pinMode(2,INPUT);  //spodne tlacitko - 1 meranie
+  pinMode(4,INPUT);  //stredne tlacitko - 5 merani
+  pinMode(6,INPUT);  //horne tlacitko - zobraz
 }
 
 boolean meraj=true;
@@ -111,6 +112,7 @@ boolean show=true;
 unsigned long start = 0;
 int merajTlac1=0;
 int merajTlac5=0;
+int showTlac=0;
 
 int n=1;
 
@@ -155,6 +157,7 @@ void loop() {
       response = String(response + String(sqm.mpsas, 2) +
                  "m,0000005915Hz,0000000000c,0000000.000s" + temp_string);
       new_data = true;
+      mpsas=sqm.mpsas;
     }
     }
     if (new_data) {
@@ -235,6 +238,11 @@ void loop() {
   else {
     display.clearDisplay();
     display.display();
+    showTlac=digitalRead(6);
+    if (showTlac==1){
+        show=true;
+        start=millis();
+    }
   }
   delay(100); 
 }

@@ -1,0 +1,7 @@
+zorne pole sosoviek - 60°
+bautrate - 115200
+meranie po prikaze "rx"
+
+napajanie cez 9v
+spodne tlacitko -> meranie (zvysne 2 zatial nepouzite)
+po 60s zhasne display
